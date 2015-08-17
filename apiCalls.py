@@ -18,7 +18,6 @@ class Calls():
 #        number = input('Phone number: ')
 #        passwd = getpass.getpass()
 #        login_data = {'msisdn': str(number), 'password': str(passwd)}
-        login_data = {'msisdn': 'PHONE_NUMBER', 'password': 'YOUR PASSWD'}
 
         login = self.__mysmsAPI.apiCall('/user/login', login_data, False)
         user_info = json.loads(login)
@@ -28,8 +27,6 @@ class Calls():
         if(user_info['errorCode'] is not 0):
             raise Exception('Failed to login. Error code is ' + \
                             str(user_info['errorCode'])) 
-        else:
-            print('Login successful')
 
         # setting up auth token
         self.__mysmsAPI.setToken(user_info['authToken']) 
@@ -86,7 +83,7 @@ class Calls():
             convs = json.loads(getConvs)['conversations']
             sortedConvs = sorted(convs,key=itemgetter('dateLastMessage'))
             for conv in sortedConvs:
-                self.printConvo(self.translateConversation(conv))
+                self.printConvoInfo(self.translateConversation(conv))
 
     #Takes the POSIX Time in milliseconds and converts it to a human readable
     #date. Note the division by 1000 is necessary to have it in the format of
@@ -104,9 +101,21 @@ class Calls():
 
     #Prints out a one line summary of the conversation data taken from the
     #translated data
-    def printConvo(self, translatedConvo):
+    def printConvoInfo(self, translatedConvo):
         print(str(translatedConvo[0]) + ' ' + translatedConvo[1] +
                 ' ' + translatedConvo[2])
 
+    def getSingleConversation(self):
+        address = '+13024385998'
+        offset  = 0
+        limit   = 10
+        req_data = {
+            'address': address,
+            'offset' :  offset,
+            'limit'  :   limit
+        }
+        getConv = self.__mysmsAPI.apiCall('/user/message/get/by/conversation',\
+                                          req_data)
+        print(getConv)
 
         
