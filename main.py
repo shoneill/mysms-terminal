@@ -1,7 +1,7 @@
 import os
 from apiCallsTest import Calls
 
-VERSION = '0.01'
+VERSION = '0.10'
 
 def clearScreen():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -29,7 +29,8 @@ menuOptions = {'clear'       : clearScreen,
                'listContacts': c.getContacts,
                'listConvos'  : c.getConversations,
                'message'     : c.prepareSMS,
-               'c'           : c.getSingleConversation,
+               'reply'       : c.replyToActiveConvo,
+               'open'        : c.openConversation,
                'exit'        : exit
               }
 
