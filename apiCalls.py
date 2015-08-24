@@ -12,15 +12,17 @@ class Calls():
     __convos   = False
     __activeConvo = False
 
-    def login(self):
+    def login(self, number = False, passwd = False):
         apiKey = 'API_KEY'
 
         # initialize API wrapper with key
         self.__mysmsAPI = mysmsAPI(apiKey)
 
         # user login
-        number = input('Phone number: ')
-        passwd = getpass.getpass()
+        if not number:
+            number = input('Phone number: ')
+        if not passwd:
+            passwd = getpass.getpass()
         login_data = {'msisdn': str(number), 'password': str(passwd)}
 
         login = self.__mysmsAPI.apiCall('/user/login', login_data, False)
@@ -36,8 +38,8 @@ class Calls():
         self.__mysmsAPI.setToken(user_info['authToken']) 
 
         # loading contacts and conversations
-        self.loadContacts()
-        self.loadConversations()
+        self.__contacts = self.loadContacts()
+        self.__convos = self.loadConversations()
 
     #Loads the user's contacts into memory as name + number pairs
     def loadContacts(self):
@@ -53,10 +55,15 @@ class Calls():
                 tmp = [contact['name'], contact['msisdns']]
                 contactList.append(tmp)
             contactList = sorted(contactList, key=itemgetter(0))
-            self.__contacts = contactList
+            return contactList
+
+    #Grabs the updated conversation list from the server
+    def updateConvos(self, options=[]):
+        newConvo = self.loadConversations()
+        self.__convos = newConvo
 
     #Prints out the loaded contact info to give names + numbers for all contacts
-    def getContacts(self):
+    def getContacts(self, options=[]):
         if self.__contacts == False:
             self.loadContacts()
         for contact in self.__contacts:
@@ -66,8 +73,8 @@ class Calls():
     #Gets the input from the user for who to send a message to and what the
     #message will be. Passes that information to the sendSMS function, which
     #performs the API call
-    def prepareSMS(self):
-        recInput = input('Enter in recipients separated by spaces: ')
+    def prepareSMS(self, options=[]):
+        recInput = input('To (10 digits, space separated): ')
         recipients = recInput.split()
         message = input('Enter your message: ')
         self.sendSMS(recipients, message)
@@ -107,10 +114,10 @@ class Calls():
             for c in convs:
                 loadedConvs.append([str(i), c])
                 i += 1
-            self.__convos = loadedConvs
+            return loadedConvs
 
     #Gets the recent conversations list
-    def getConversations(self):
+    def getConversations(self, options=[]):
         if self.__convos == False:
             self.loadConversations()
         limit = 10
@@ -122,12 +129,12 @@ class Calls():
     def setActiveConversation(self, conv):
         self.__activeConvo = conv[1]
 
-    def openConversation(self):
+    def openConversation(self, options=[]):
         c = int(input('Conv num: '))
         self.setActiveConversation(self.__convos[c])
         self.getSingleConversation(self.__activeConvo['address'])
 
-    def replyToActiveConvo(self):
+    def replyToActiveConvo(self, options=[]):
         if self.__activeConvo == False:
             print('No active conversation, please open one')
         else:
