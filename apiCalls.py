@@ -2,7 +2,7 @@ from apiWrapper import mysmsAPI
 import json
 import getpass
 from operator import itemgetter
-from datetime import datetime
+from datetime import datetime, timedelta, time, date
 
 class Calls():
 
@@ -31,7 +31,7 @@ class Calls():
         # Explanation of error codes is here: 
         # http://api.mysms.com/resource_User.html#path__user_login.html
         if(user_info['errorCode'] is not 0):
-            raise Exception('Failed to login. Error code is ' + \
+            raise Exception('Login error: ' + \
                             str(user_info['errorCode'])) 
 
         # setting up auth token
@@ -46,7 +46,7 @@ class Calls():
         data = {} # no required data
         contacts = self.__mysmsAPI.apiCall('/user/contact/contacts/get', data)
         if json.loads(contacts)['errorCode'] != 0:
-            print('Failed to load contacts. Error: ' +\
+            print('loadContacts error: ' +\
             str(json.loads(contacts)['errorCode']))
         else:
             contacts = json.loads(contacts)['contacts']
@@ -93,7 +93,7 @@ class Calls():
 
         sendsms = self.__mysmsAPI.apiCall('/remote/sms/send', req_data)
         if json.loads(sendsms)['errorCode'] != 0:
-            print('Failed to send message. Error: ' +\
+            print('sendSMS error: ' +\
             str(json.loads(sendsms)['errorCode']))
         else:
             print('Message sent.')
@@ -104,7 +104,7 @@ class Calls():
         getConvs = self.__mysmsAPI.apiCall('/user/message/conversations/get',\
                                            req_data)
         if json.loads(getConvs)['errorCode'] != 0:
-            print('Failed to get conversations. Error: ' +\
+            print('loadConversations error: ' +\
             str(json.loads(getConvs)['errorCode']))
         else:
             loadedConvs = []
@@ -126,12 +126,17 @@ class Calls():
             print(str(i) + ') ', end='')
             self.printConvoInfo(self.translateConversation(conv[1]))
 
+    #Sets a conversation as the currently focused conversation
     def setActiveConversation(self, conv):
         self.__activeConvo = conv[1]
 
     def openConversation(self, options=[]):
-        c = int(input('Conv num: '))
+        if len(options) > 0:
+            c = int(options[0])
+        else:
+            c = int(input('Conv num: '))
         self.setActiveConversation(self.__convos[c])
+        self.markConversationRead(self.__activeConvo['address'])
         self.getSingleConversation(self.__activeConvo['address'])
 
     def replyToActiveConvo(self, options=[]):
@@ -144,16 +149,25 @@ class Calls():
             msg = input('msg: ')
             self.sendSMS(address, msg)
 
-    #Takes the POSIX Time in milliseconds and converts it to a human readable
-    #date. Note the division by 1000 is necessary to have it in the format of
-    #seconds
-    def getDate(self, date):
-        return datetime.fromtimestamp(int(date/1000))
-    
+    #Takes POSIX time of the last messages and converts them to a conveniently 
+    #readable format. Messages that occur the same day as the current date will
+    #only show the timestamp. Messages from yesterday will say "Yesterday" and
+    #the time. Messages before that will show the full date.
+    def getReadableTime(self, msgTime):
+        today = datetime.combine(date.today(), time.min)
+        yesterday = datetime.combine(today + timedelta(-1), time.min)
+        msgDate = datetime.fromtimestamp(int(msgTime/1000))
+        if msgDate > today:
+            return msgDate.strftime('%H:%M')
+        elif msgDate > yesterday:
+            return "Yesterday " + msgDate.strftime('%H:%M')
+        else:
+            return msgDate.strftime('%b %d, %H:%M')
+        
     #Converst the json for a conversation from the API call into something that
     #has the relevant information and is human readable
     def translateConversation(self, conv):
-        date    = self.getDate(conv['dateLastMessage'])
+        date    = self.getReadableTime(conv['dateLastMessage'])
         number  = self.convertNumberToName(conv['address'])
         snippet = conv['snippet']
         return [date, number, snippet]
@@ -178,7 +192,7 @@ class Calls():
         getConv = self.__mysmsAPI.apiCall('/user/message/get/by/conversation',\
                                           req_data)
         if json.loads(getConv)['errorCode'] != 0:
-            print('Failed to get conversations. Error: ' +\
+            print('getSingleConversations. Error: ' +\
             str(json.loads(getConv)['errorCode']))
         else:
             getConv = json.loads(getConv)['messages']
@@ -194,6 +208,19 @@ class Calls():
             msg = line['message']
 
             print(read + name + ': ' + msg)
+
+    #Marks a conversation as read
+    def markConversationRead(self, number):
+        address = number
+        req_data = {
+            'address': address
+        }
+        markRead = self.__mysmsAPI.apiCall('/user/message/conversations/read',\
+                                           req_data)
+
+        if json.loads(markRead)['errorCode'] != 0:
+            print('markConversationRead error: ' +\
+            json.loads(genConv)['errorCode'])
 
     def convertNumberToName(self, number):
         for contact in self.__contacts:
