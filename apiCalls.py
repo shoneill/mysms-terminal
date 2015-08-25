@@ -197,7 +197,6 @@ class Calls():
         else:
             getConv = json.loads(getConv)['messages']
             self.translateSingleConv(getConv)
-
     
     def translateSingleConv(self, conv):
         conv.reverse()
@@ -221,6 +220,13 @@ class Calls():
         if json.loads(markRead)['errorCode'] != 0:
             print('markConversationRead error: ' +\
             json.loads(genConv)['errorCode'])
+
+    #Returns the number of unread messages
+    def numUnreadMessages(self, options=[]):
+        numUnread = 0
+        for conv in self.__convos:
+            numUnread += conv[1]['messagesUnread']
+        return numUnread
 
     def convertNumberToName(self, number):
         for contact in self.__contacts:

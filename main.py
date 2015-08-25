@@ -21,6 +21,7 @@ menuOptions = {'clear'       : clearScreen,
                'message'     : c.prepareSMS,
                'reply'       : c.replyToActiveConvo,
                'open'        : c.openConversation,
+               'unread'      : c.numUnreadMessages,
                'update'      : c.updateConvos,
                'exit'        : sys.exit
               }
@@ -54,13 +55,19 @@ parser.add_argument('-l', '--login', help='phone number for login',
                     action='store')
 parser.add_argument('-p', '--password', help='password for login',
                     action='store')
+parser.add_argument('-u', '--unread', help='gets the number of unread messages',
+                    action='store_true')
 args = parser.parse_args()
 
 if args.noninteractive:
-    if args.login or args.password == None:
+    if args.login == None or args.password == None:
         print('login and password required for noninteractive mode')
     else:
         c.login(args.login, args.password)
+        if args.unread:
+            print(c.numUnreadMessages())
 else:
     c.login(args.login, args.password)
+    if args.unread:
+        print(c.numUnreadMessages())
     menu()
