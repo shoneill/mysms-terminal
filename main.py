@@ -36,10 +36,14 @@ def processInput(inStr):
     splitString = inStr.split()
     command = splitString[0]
     options = splitString[1:]
-    if command not in menuOptions:
-        print('command not recognized')
-    else:
+    if command in menuOptions:
+        clearScreen()
         menuOptions[command](options)
+    elif command in [a[0] for a in c.returnConvos()]: #if its a conv num
+        clearScreen()
+        c.openConversation([command])
+    else:
+        print('command not recognized')
 
 def menu():
     while True:
@@ -70,4 +74,6 @@ else:
     c.login(args.login, args.password)
     if args.unread:
         print(c.numUnreadMessages())
+    clearScreen()
+    c.getConversations()
     menu()

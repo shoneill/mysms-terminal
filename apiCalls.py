@@ -10,7 +10,7 @@ class Calls():
     
     __contacts = False
     __convos   = False
-    __activeConvo = False
+    __activeConvo  = False
 
     def login(self, number = False, passwd = False):
         apiKey = 'API_KEY'
@@ -125,6 +125,9 @@ class Calls():
             conv = self.__convos[i]
             print(str(i) + ') ', end='')
             self.printConvoInfo(self.translateConversation(conv[1]))
+
+    def returnConvos(self):
+        return self.__convos
 
     #Sets a conversation as the currently focused conversation
     def setActiveConversation(self, conv):
