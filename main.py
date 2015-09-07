@@ -1,7 +1,7 @@
 import os
 import argparse
 import sys
-from apiCallsTest import Calls
+from apiCalls import Calls
 
 VERSION = '0.12'
 c = Calls() ##API Client Object - All interactions with mysms are through this
