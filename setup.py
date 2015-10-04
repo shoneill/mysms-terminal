@@ -7,8 +7,8 @@ except ImportError:
 import mysmsterminal
 
 setup(name='mysms-terminal',
-      version=mysmsterminal.__version__,
-      license=mysmsterminal.__license__,
+      version=mysmsterminal.VERSION,
+      license=mysmsterminal.LICENSE,
       scripts=['bin/mysms-terminal'],
       packages=('mysmsterminal',
                 'mysmsterminal.api')

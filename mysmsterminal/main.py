@@ -1,9 +1,11 @@
 import os
 import argparse
 import sys
+
 from mysmsterminal.api.calls import Calls
 
-VERSION = '0.12'
+VERSION = '1.0'
+LICENSE = 'GPLv2'
 c = Calls() ##API Client Object - All interactions with mysms are through this
 
 def clearScreen(options=[]):
